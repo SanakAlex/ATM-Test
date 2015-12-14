@@ -75,11 +75,13 @@ public class ATM {
     //Если недостаточно денег в банкомате, то должно генерироваться исключение NotEnoughMoneyInATM
     //Если не прошла проверка пин кода, то метод возвращает прежнюю сумму счета
     //При успешном снятии денег, указанная сумма должна списываться со счета, и в банкомате должно уменьшаться количество денег
-    public double getCash(double amount, int pinCode, Card card){
+    public double getCash(double amount, int pinCode){
         this.validateCard(card, pinCode);
         isEnoughMoneyInAccount(amount);
         isEnoughMoneyInATM(amount);
+        double oldMoneyInAcc = card.getAccount().getBalance();
         this.moneyInATM -= this.card.getAccount().withdrow(amount);
-        return this.card.getAccount().getBalance();
+
+        return oldMoneyInAcc - amount;
     }
 }

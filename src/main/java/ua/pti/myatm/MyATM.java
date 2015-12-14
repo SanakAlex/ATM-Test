@@ -8,6 +8,6 @@ public class MyATM {
         Card card = null;
         atm.validateCard(card, 1234);
         atm.checkBalance(card, 7777);
-        atm.getCash(999.99,1234, card);
+        atm.getCash(999.99,1234);
     }
 }

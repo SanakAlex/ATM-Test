@@ -193,14 +193,14 @@ public class ATMTest {
         atm.isEnoughMoneyInATM(amount);
     }
 
-    @Test(expected = NoCardInsertedException.class)
+    /*@Test(expected = NoCardInsertedException.class)
     public void testGetCash_CardIsNotValidated(){
         ATM atm = new ATM(1000);
         double amount = 1000;
 
 
-        atm.getCash(amount, 1111, null);
-    }
+        atm.getCash(amount, 1111);
+    }*/
 
 
 /*    @Test
@@ -235,7 +235,7 @@ public class ATMTest {
         when(account.withdrow(amount)).thenReturn(1000d);
 
         atm.validateCard(card, 7777);
-        atm.getCash(amount,7777, card);
+        atm.getCash(amount,7777);
     }
 
     @Test(expected = NotEnoughMoneyInATMException.class)
@@ -253,7 +253,7 @@ public class ATMTest {
         when(account.withdrow(amount)).thenReturn(1000d);
 
         atm.validateCard(card, 7777);
-        atm.getCash(amount,7777, card);
+        atm.getCash(amount,7777);
     }
 
     @Test
@@ -267,13 +267,14 @@ public class ATMTest {
         when(card.isBlocked()).thenReturn(Boolean.FALSE);
         when(card.checkPin(7777)).thenReturn(Boolean.TRUE);
         when(card.getAccount()).thenReturn(account);
-        when(account.getBalance()).thenReturn(1000d).thenReturn(0d);
+        when(account.getBalance()).thenReturn(1000d).thenReturn(1000d).thenReturn(1000d).thenReturn(0d);
         when(account.withdrow(amount)).thenReturn(1000d);
 
         InOrder inOrder = inOrder(card, account);
 
         atm.validateCard(card, 7777);
-        assertEquals(0, atm.getCash(amount,7777, card), 0.0);
+        double expectedMoneyInAcc = card.getAccount().getBalance() - amount;
+        assertEquals(expectedMoneyInAcc, atm.getCash(amount,7777), 0.0);
 
         inOrder.verify(card).isBlocked();
         inOrder.verify(card).checkPin(7777);
@@ -292,20 +293,21 @@ public class ATMTest {
         when(card.isBlocked()).thenReturn(Boolean.FALSE);
         when(card.checkPin(7777)).thenReturn(Boolean.TRUE);
         when(card.getAccount()).thenReturn(account);
-        when(account.getBalance()).thenReturn(1000d).thenReturn(0d);
+        when(account.getBalance()).thenReturn(1000d).thenReturn(1000d).thenReturn(1000d).thenReturn(0d);
         when(account.withdrow(amount)).thenReturn(1000d);
 
+
         InOrder inOrder = inOrder(account);
-
         atm.validateCard(card, 7777);
-        assertEquals(0, atm.getCash(amount,7777, card), 0.0);
+        double expectedMoneyInAcc = card.getAccount().getBalance() - amount;
+        assertEquals(expectedMoneyInAcc, atm.getCash(amount,7777), 0.0);
 
-        inOrder.verify(account).getBalance();
+        inOrder.verify(account, atLeastOnce()).getBalance();
         inOrder.verify(account).withdrow(amount);
     }
 
     @Test
-    public void testGetCash_Correct(){
+    public void testGetCash_CorrectMoneyInATMAfterGetCash(){
         ATM atm = new ATM(1000);
         double amount = 1000;
 
@@ -319,7 +321,10 @@ public class ATMTest {
         when(account.withdrow(amount)).thenReturn(1000d);
 
         atm.validateCard(card, 7777);
-        assertEquals(0, atm.getCash(amount,7777, card), 0.0);
+
+        double expectedMoneyInATM = atm.getMoneyInATM() - amount;
+        atm.getCash(amount,7777);
+        assertEquals(expectedMoneyInATM, atm.getMoneyInATM(), 0.0);
     }
 
     @Test
@@ -337,11 +342,24 @@ public class ATMTest {
         when(account.withdrow(amount)).thenReturn(100d);
 
         atm.validateCard(card, 7777);
-        atm.getCash(amount, 7777, card);
+        atm.getCash(amount, 7777);
 
         assertEquals(20, atm.getMoneyInATM(), 0.0);
     }
 
+    @Test
+    public void testCheckBalance_CheckIsBlocked(){
+        ATM atm = new ATM(1);
 
+        Card card = mock(Card.class);
+        Account account = mock(Account.class);
 
+        when(card.isBlocked()).thenReturn(Boolean.FALSE);
+        when(card.checkPin(7777)).thenReturn(Boolean.TRUE);
+        when(card.getAccount()).thenReturn(account);
+
+        atm.checkBalance(card, 7777);
+
+        verify(card,times(1)).isBlocked();
+    }
 }
